@@ -11,54 +11,58 @@ static void PopulateHashTable<TKey, TValue>(IHashTable<string, int> hashTable, i
     }
 }
 
-static long[] Evaluate(Type type)
+static List<long> Evaluate(IHashTable<string, int>[] hashTables)
 {
+    PopulateHashTable<string, int>(hashTables[0], 100);
+    PopulateHashTable<string, int>(hashTables[1], 10000);
+    PopulateHashTable<string, int>(hashTables[2], 1000000);
     Stopwatch stopwatch = new Stopwatch();
-    long[] values = new long[3];
+    Random random = new();
+    List<long> values = [];
 
-    var table = (IHashTable<string, int>)Activator.CreateInstance(type, 100);
-    PopulateHashTable<string, int>(table, 100);
-
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i++)
     {
-        table.Find("somekey"); // warm-up
+        // N = 100  
+        var key = random.Next(0, 100).ToString();
+        stopwatch.Start();
+        hashTables[0].Find(key);
+        stopwatch.Stop();
+        values.Add(stopwatch.ElapsedTicks);
+        Console.WriteLine($"Time taken to find {key} in hash table with 100 elements: {stopwatch.ElapsedTicks}00 ns");
+
+        // N = 10000
+        key = random.Next(0, 10000).ToString();
+        stopwatch.Restart();
+        hashTables[1].Find(key);
+        stopwatch.Stop();
+        values.Add(stopwatch.ElapsedTicks);
+        Console.WriteLine($"Time taken to find {key} in hash table with 10000 elements: {stopwatch.ElapsedTicks}00 ns");
+
+        // N = 1000000
+        key = random.Next(0, 1000000).ToString();
+        stopwatch.Restart();
+        hashTables[2].Find(key);
+        stopwatch.Stop();
+        values.Add(stopwatch.ElapsedTicks);
+        Console.WriteLine($"Time taken to find {key} in hash table with 1000000 elements: {stopwatch.ElapsedTicks}00 ns");
     }
-
-    // N = 100  
-    stopwatch.Start();
-    table.Find("56");
-    stopwatch.Stop();
-    values[0] = stopwatch.ElapsedTicks;
-    Console.WriteLine($"Time taken to find 56 in hash table with 100 elements: {stopwatch.ElapsedTicks}00 ns");
-
-    // N = 10000  
-    table = (IHashTable<string, int>)Activator.CreateInstance(type, 10000);
-    PopulateHashTable<string, int>(table, 10000);
-    stopwatch.Restart();
-    table.Find("1234");
-    stopwatch.Stop();
-    values[1] = stopwatch.ElapsedTicks;
-    Console.WriteLine($"Time taken to find 1234 in hash table with 10000 elements: {stopwatch.ElapsedTicks}00 ns");
-
-    // N = 1000000  
-    table = (IHashTable<string, int>)Activator.CreateInstance(type, 1000000);
-    PopulateHashTable<string, int>(table, 1000000);
-    stopwatch.Restart();
-    table.Find("12345");
-    stopwatch.Stop();
-    values[2] = stopwatch.ElapsedTicks;
-    Console.WriteLine($"Time taken to find 12345 in hash table with 1000000 elements: {stopwatch.ElapsedTicks}00 ns");
 
     return values;
 }
 
-long[] evaluated;
+List<long> evaluated;
+HashTableLinear<string, int>[] hashTablesLinear = new HashTableLinear<string, int>[3];
+HashTableQuadratic<string, int>[] hashTablesQuadratic = new HashTableQuadratic<string, int>[3];
 
-Evaluate(typeof(HashTableLinear<string, int>));
+foreach (var i in Enumerable.Range(0, 3))
+{
+    hashTablesLinear[i] = new HashTableLinear<string, int>(i == 0 ? 100 : i == 1 ? 10000 : 1000000);
+    hashTablesQuadratic[i] = new HashTableQuadratic<string, int>(i == 0 ? 100 : i == 1 ? 10000 : 1000000);
+}
 
 Console.WriteLine("HashTableLinear:");
-evaluated = Evaluate(typeof(HashTableLinear<string, int>));
-Plotting.Plot(evaluated[0], evaluated[1], evaluated[2], "Linear");
+evaluated = Evaluate(hashTablesLinear);
+Plotting.Plot(evaluated, "Linear");
 Console.WriteLine("HashTableQuadratic:");
-evaluated = Evaluate(typeof(HashTableQuadratic<string, int>));
-Plotting.Plot(evaluated[0], evaluated[1], evaluated[2], "Quadratic");
+evaluated = Evaluate(hashTablesQuadratic);
+Plotting.Plot(evaluated, "Quadratic");

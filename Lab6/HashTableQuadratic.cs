@@ -22,7 +22,7 @@
             int position = GetArrayPosition(key);
             for (int i = 0; i < size; i++)
             {
-                int probePosition = (position + i * i) % size; // Квадратичное пробирование
+                int probePosition = (position + i * i) % size;
                 if (items[probePosition].Key != null && items[probePosition].Key.Equals(key) && !items[probePosition].IsDeleted)
                 {
                     return items[probePosition].Value;
@@ -37,7 +37,7 @@
             int position = GetArrayPosition(key);
             for (int i = 0; i < size; i++)
             {
-                int probePosition = (position + i * i) % size; // Квадратичное пробирование
+                int probePosition = (position + i * i) % size;
                 if (items[probePosition].Key == null || items[probePosition].IsDeleted)
                 {
                     items[probePosition] = new KeyValue<K, V> { Key = key, Value = value, IsDeleted = false };
@@ -53,7 +53,7 @@
             int position = GetArrayPosition(key);
             for (int i = 0; i < size; i++)
             {
-                int probePosition = (position + i * i) % size; // Квадратичное пробирование
+                int probePosition = (position + i * i) % size;
                 if (items[probePosition].Key != null && items[probePosition].Key.Equals(key) && !items[probePosition].IsDeleted)
                 {
                     items[probePosition].IsDeleted = true;
